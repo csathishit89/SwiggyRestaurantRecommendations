@@ -11,15 +11,13 @@ st.set_page_config(
     layout="wide"
 )
 
-swiggy_df = pd.read_csv(r"C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\swiggy.csv")
+@st.cache_data
+def load_data():
+    return pd.read_csv(r"C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\swiggy.csv")
 
-# swiggy_df.head()
+swiggy_df = load_data()
 
 swiggy_df = swiggy_df.drop(['lic_no', 'link', 'address', 'menu'], axis=1)
-
-# swiggy_df.size
-# swiggy_df.shape
-# swiggy_df.info()
 
 swiggy_df['rating'] = swiggy_df['rating'].replace('--', np.nan).astype(float)
 swiggy_df['cost'] = pd.to_numeric(
@@ -31,10 +29,6 @@ swiggy_df['rating_count'] = (
     .str.extract('(\d+)')   # extract digits only
     .astype(float)
 )
-
-# swiggy_df.describe()
-
-# swiggy_df.select_dtypes(include='number').skew()
 
 swiggy_df['rating_count_log'] = np.log1p(swiggy_df['rating_count'])
 swiggy_df['cost_log'] = np.log1p(swiggy_df['cost'])
@@ -56,12 +50,14 @@ swiggy_df['city_name'] = (
 cat_cols = ['name', 'cuisine']
 swiggy_df[cat_cols] = swiggy_df[cat_cols].fillna('Unknown')
 
-# swiggy_df.isnull().sum()
-# swiggy_df.duplicated().sum()
-
 swiggy_df.to_csv("cleaned_data.csv", index=False)
 
-swiggy_cleaned_df = pd.read_csv(r'C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\cleaned_data.csv')
+
+@st.cache_data
+def load_cleaned_data():
+    return pd.read_csv(r'C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\cleaned_data.csv', engine="python", on_bad_lines="skip")
+
+swiggy_cleaned_df = load_cleaned_data()
 
 cols = ['city_name', 'cuisine']
 
@@ -110,7 +106,7 @@ swiggy_cleaned_df['cluster'] = kmeans.fit_predict(swiggy_df_model)
 swiggy_df_model.to_pickle("encoded_data.pkl")
 swiggy_df_model.to_csv("encoded_data.csv")
 
-cleaned = pd.read_csv(r'C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\cleaned_data.csv')
+cleaned = pd.read_csv(r'C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\cleaned_data.csv', engine="python", on_bad_lines="skip")
 encoded = pd.read_pickle(r'C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scripts\encoded_data.pkl')
 
 # cleaned.index.equals(encoded.index)
