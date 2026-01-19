@@ -1,4 +1,4 @@
-# preprocess.py
+# Imports
 import pandas as pd
 import numpy as np
 import pickle
@@ -6,6 +6,7 @@ from sklearn.preprocessing import MultiLabelBinarizer, StandardScaler
 from sklearn.cluster import KMeans
 import os
 
+# Artifact Directory
 ARTIFACT_DIR = "artifacts"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
@@ -14,7 +15,7 @@ df = pd.read_csv( r"C:\MAMP\htdocs\SwiggyRestaurantRecommendations\clientEnv\Scr
 
 df = df.drop(['lic_no', 'link', 'address', 'menu'], axis=1)
 
-# ---------------- CLEAN ----------------
+# ---------------- Data Cleaning ----------------
 df['rating'] = df['rating'].replace('--', np.nan).astype(float)
 
 df['cost'] = pd.to_numeric(
@@ -44,7 +45,7 @@ df['city_name'] = (
 
 df[['name', 'cuisine']] = df[['name', 'cuisine']].fillna("Unknown")
 
-# ---------------- CUISINE ENCODING ----------------
+# ---------------- Cuisine Encoding (Multi-label) ----------------
 df['cuisine'] = (
     df['cuisine']
     .str.lower()
