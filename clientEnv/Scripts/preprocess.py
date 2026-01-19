@@ -75,16 +75,33 @@ model_df[['rating', 'rating_count_log', 'cost_log']] = scaler.fit_transform(
     model_df[['rating', 'rating_count_log', 'cost_log']]
 )
 
+
 # ---------------- KMEANS ----------------
-kmeans = KMeans(n_clusters=6, n_init=10)
-df['cluster'] = kmeans.fit_predict(model_df)
+kmeans = KMeans(n_clusters=6, random_state=42, n_init=10)
+
+# FIT
+kmeans.fit(model_df)
+
+# DISTANCE TO CENTROIDS (EUCLIDEAN)
+distances = kmeans.transform(model_df)
+
+# CLUSTER ASSIGNMENT
+df['cluster'] = np.argmin(distances, axis=1)
+
+# SAVE DISTANCES FOR FAST RETRIEVAL
+distance_df = pd.DataFrame(
+    distances,
+    columns=[f"cluster_dist_{i}" for i in range(distances.shape[1])]
+)
+
+final_df = pd.concat([df.reset_index(drop=True), distance_df], axis=1)
 
 # ---------------- SAVE ARTIFACTS ----------------
-df.to_pickle(f"{ARTIFACT_DIR}/cleaned.pkl")
+final_df.to_pickle(f"{ARTIFACT_DIR}/cleaned.pkl")
 model_df.to_pickle(f"{ARTIFACT_DIR}/encoded.pkl")
 
-pickle.dump(scaler, open(f"{ARTIFACT_DIR}/scaler.pkl", "wb"))
 pickle.dump(kmeans, open(f"{ARTIFACT_DIR}/kmeans.pkl", "wb"))
+pickle.dump(scaler, open(f"{ARTIFACT_DIR}/scaler.pkl", "wb"))
 pickle.dump(mlb, open(f"{ARTIFACT_DIR}/mlb.pkl", "wb"))
 
 print("✅ Preprocessing completed successfully")
